@@ -94,6 +94,35 @@ mcp__notion__notion-create-pages(
 - 테스트 프레임워크
 - 배포 파이프라인
 
+## 🔄 로컬 개발 워크플로우
+
+### 📁 도구별 역할
+- **GitHub**: 코드 버전 관리 및 백업 (`https://github.com/poriz/claude-todo`)
+- **Notion**: 작업 진행 상황 및 히스토리 관리 (이 워크스페이스)  
+- **Claude Code**: 로컬 개발 환경 및 두 도구 연동
+
+### 🔄 작업 프로세스
+1. **Claude Code**로 개발 작업 수행
+2. **Git**으로 코드 변경사항 커밋/푸시  
+3. **Notion**에 작업 진행 상황 수동 업데이트
+4. **Daily Logs**에 작업 내용 기록
+
+### 📝 연동 관리 가이드
+- 코드 변경 후 반드시 **Notion Tasks** 상태 업데이트
+- Phase 완료 시 **GitHub**에 태그 생성 고려
+- 주요 커밋 시 **Daily Logs** 작성
+- 브랜치 전략: `main`(프로덕션), `feature/*`(새 기능)
+
+### 🏷️ 커밋 컨벤션
+```
+feat: 새 기능 추가
+fix: 버그 수정  
+docs: 문서 수정
+style: 코드 스타일 변경
+refactor: 리팩토링
+test: 테스트 추가/수정
+```
+
 ---
 
 ## 💡 중요 지침
