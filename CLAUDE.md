@@ -133,8 +133,78 @@ test: 테스트 추가/수정
 4. **매일 작업 마감 시** Daily Logs에 일일 요약을 작성하세요
 5. **Phase 전환 시** Progress Dashboard를 업데이트하세요
 
+## 🛡️ Notion API 에러 예방 가이드
+
+### 📋 주요 에러 유형
+1. **Select 필드 제약 위반** - 미리 정의된 옵션만 사용 가능
+2. **문자열 매칭 실패** - 정확한 텍스트를 찾지 못함  
+3. **데이터 타입 불일치** - 단일값 필드에 복수값 입력 시도
+
+### 🔧 필수 사전 작업
+```typescript
+// 작업 전에 항상 데이터베이스 스키마 확인
+const database = await mcp__notion__fetch("database_id");
+console.log("Available options:", database.properties);
+```
+
+### ✅ Tasks Database 안전한 값들
+```typescript
+const SAFE_VALUES = {
+  "Tags": ["Frontend", "Backend", "UI/UX", "Database", "Testing", "Bug Fix", "Feature"],
+  "Priority": ["Low", "Medium", "High"], 
+  "Status": ["📝 Todo", "🔄 In Progress", "✅ Done"],
+  "Phase": ["Phase 1", "Phase 2", "Phase 3", "Phase 4", "Phase 5"],
+  "Tasks Completed": ["Setup", "Development", "Testing", "Bug Fix", "Documentation", "Research"]
+};
+```
+
+### 🔒 Daily Logs Database 안전한 값들
+```typescript
+const DAILY_LOGS_SAFE_VALUES = {
+  "Phase": ["Phase 1", "Phase 2", "Phase 3", "Phase 4", "Phase 5"],
+  "Tasks Completed": ["Setup", "Development", "Testing", "Bug Fix", "Documentation", "Research"]
+};
+```
+
+### 📝 안전한 페이지 업데이트 방법
+```typescript
+// ❌ 위험한 방법 - 복잡한 문자열 매칭
+"selection_with_ellipsis": "- **프로젝트 경로**: /Users/jangtaesu/claude-todo"
+
+// ✅ 안전한 방법 - 간단하고 고유한 문자열
+"selection_with_ellipsis": "로컬 경로...claude-todo"
+
+// ✅ 더 안전한 방법 - append 사용
+"command": "insert_content_after"  // replace 대신 insert 사용
+```
+
+### 🚨 에러 발생 시 대응 방법
+```typescript
+// 1. Select 필드 에러 시 → 기본값 사용
+"Tags": "Feature"  // 항상 유효한 기본값
+
+// 2. 문자열 매칭 실패 시 → 더 간단한 문자열로 재시도
+// 3. 복수값 에러 시 → 단일값으로 변경
+"Tasks Completed": "Development"  // 하나만 선택
+
+// 4. 모든 에러 공통 → 필수 필드만으로 최소 생성
+const minimalData = {
+  "Task": "작업명",  // 필수 필드만 포함
+  "Status": "📝 Todo",
+  "Tags": "Feature"
+};
+```
+
+### 💡 Best Practices
+1. **항상 기존 옵션 사용**: 새로운 Select 값 생성 불가
+2. **간단한 문자열 매칭**: 특수문자, 긴 문장 피하기
+3. **에러 핸들링 필수**: try-catch로 안전장치 구비
+4. **최소 필드로 시작**: 복잡한 데이터는 단계별로 추가
+
+---
+
 이 가이드를 따라 체계적인 프로젝트 관리를 유지하세요.
 
 ---
-*마지막 업데이트: 2025-08-10*
+*마지막 업데이트: 2025-08-10 (Notion API 에러 예방 가이드 추가)*
 *Notion 워크스페이스: claude code*
