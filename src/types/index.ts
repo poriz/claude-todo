@@ -41,3 +41,22 @@ export interface TodoState {
   loading: boolean;
   error: string | null;
 }
+
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface LoginForm {
+  email: string;
+  password: string;
+}
+
+export interface SignupForm {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
