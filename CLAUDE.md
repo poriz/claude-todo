@@ -5,7 +5,7 @@
 이 프로젝트는 **Notion MCP**를 통해 작업 히스토리를 관리합니다. 모든 작업 진행 상황과 계획은 Notion에서 체계적으로 추적됩니다.
 
 ### 🔗 Notion 루트 페이지
-**메인 허브**: [📋 Claude Todo Project](https://www.notion.so/24bfdc52e94c81c1baa7e6ff2987725e)
+**메인 허브**: [📋 Claude Todo Project](https://www.notion.so/$NOTION_PROJECT_ROOT_ID)
 
 ## 📊 관리 구조
 
@@ -49,20 +49,56 @@
 mcp__notion__search("claude todo project progress")
 
 # Tasks Database 확인
-mcp__notion__fetch("c840dc861b0b4352aee4a388ff0d7f9b")
+mcp__notion__fetch($NOTION_TASKS_DB_ID)
 
 # 새 작업 추가
 mcp__notion__notion-create-pages(
-  parent: {"database_id": "c840dc861b0b4352aee4a388ff0d7f9b"},
+  parent: {"database_id": $NOTION_TASKS_DB_ID},
   properties: {"Task": "새로운 기능", "Phase": "Phase 2", "Status": "📝 Todo"}
 )
 
 # 일일 로그 추가
 mcp__notion__notion-create-pages(
-  parent: {"database_id": "437d707aed924b06aa2e1a89ce306b5f"},
+  parent: {"database_id": $NOTION_DAILY_LOGS_DB_ID},
   properties: {"Date": "2025-08-XX", "Work Summary": "작업 내용"}
 )
 ```
+
+## 🔐 환경변수 설정
+
+### 📁 파일 구조
+```
+claude-todo/
+├── .env.example          # 환경변수 템플릿 (Git 추적)  
+├── .env                  # 실제 환경변수 (Git 무시)
+└── CLAUDE.md            # 이 문서 (환경변수 참조)
+```
+
+### 🚀 초기 설정 방법
+1. `.env.example`을 복사하여 `.env` 파일 생성:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. `.env` 파일에 실제 Notion ID 값들 입력:
+   ```bash
+   # .env 파일 내용 
+   NOTION_PROJECT_ROOT_ID=24bfdc52e94c81c1baa7e6ff2987725e
+   NOTION_TASKS_DB_ID=c840dc861b0b4352aee4a388ff0d7f9b
+   NOTION_DAILY_LOGS_DB_ID=437d707aed924b06aa2e1a89ce306b5f
+   # ... 기타 ID들
+   ```
+
+### 🔒 보안 특징
+- ✅ `.env` 파일은 `.gitignore`로 보호됨  
+- ✅ `.env.example`은 템플릿만 제공 (실제 값 없음)
+- ✅ CLAUDE.md는 환경변수 참조만 사용 ($VARIABLE_NAME)
+
+### 💡 사용법
+문서의 모든 Notion ID는 이제 환경변수로 참조됩니다:
+- `$NOTION_PROJECT_ROOT_ID` - 메인 프로젝트 페이지
+- `$NOTION_TASKS_DB_ID` - Tasks 데이터베이스  
+- `$NOTION_DAILY_LOGS_DB_ID` - Daily Logs 데이터베이스
 
 ## 📈 프로젝트 현황 (2025-08-10 기준)
 
@@ -143,7 +179,7 @@ test: 테스트 추가/수정
 ### 🔧 필수 사전 작업
 ```typescript
 // 작업 전에 항상 데이터베이스 스키마 확인
-const database = await mcp__notion__fetch("database_id");
+const database = await mcp__notion__fetch($NOTION_TASKS_DB_ID);
 console.log("Available options:", database.properties);
 ```
 
@@ -200,6 +236,76 @@ const minimalData = {
 2. **간단한 문자열 매칭**: 특수문자, 긴 문장 피하기
 3. **에러 핸들링 필수**: try-catch로 안전장치 구비
 4. **최소 필드로 시작**: 복잡한 데이터는 단계별로 추가
+
+## 🔐 민감한 정보 관리 가이드
+
+### 🚨 보안 위험 요소들
+1. **API 키 및 토큰** - Notion API 토큰, GitHub 토큰 등
+2. **데이터베이스 ID** - Notion 페이지/데이터베이스 고유 식별자
+3. **워크스페이스 정보** - 조직 내부 정보, 사용자 ID
+4. **접근 권한** - 특정 리소스에 대한 권한 정보
+
+### 🛡️ 보안 대책
+
+#### 1. 환경변수 활용
+```bash
+# ✅ 올바른 방법 - .env 파일 사용
+NOTION_API_TOKEN=secret_xxx
+NOTION_PROJECT_ROOT_ID=page_id_xxx
+
+# ❌ 위험한 방법 - 코드에 하드코딩  
+const token = "secret_xxx";  // Git에 노출됨!
+```
+
+#### 2. 파일 보호 설정
+```gitignore
+# .gitignore 필수 항목들
+.env*           # 모든 환경변수 파일
+!.env.example   # 템플릿은 예외
+*.key           # 키 파일들
+config/secrets/ # 비밀 설정 폴더
+```
+
+#### 3. Git 히스토리 정리
+```bash
+# 이미 커밋된 민감 정보 제거 (주의!)
+git filter-branch --force --index-filter \
+'git rm --cached --ignore-unmatch path/to/sensitive/file' \
+--prune-empty --tag-name-filter cat -- --all
+```
+
+### 📋 체크리스트
+
+#### 🔍 커밋 전 검사사항
+- [ ] `.env` 파일이 `.gitignore`에 포함되어 있는가?
+- [ ] 코드에 하드코딩된 ID/토큰이 없는가?  
+- [ ] 로그 파일에 민감 정보가 출력되지 않는가?
+- [ ] 주석에 실제 값들이 포함되지 않았는가?
+
+#### 🚀 배포 전 검사사항  
+- [ ] 프로덕션 환경변수가 별도로 설정되어 있는가?
+- [ ] 개발용 ID와 프로덕션용 ID가 분리되어 있는가?
+- [ ] API 키가 최소 권한으로 설정되어 있는가?
+- [ ] 접근 로그 모니터링이 설정되어 있는가?
+
+### 🎯 프로젝트별 적용사항
+
+#### Notion Integration
+- ✅ 모든 페이지/DB ID → 환경변수 처리 완료
+- ✅ API 토큰 → MCP 설정으로 관리
+- ✅ 워크스페이스 정보 → 로컬 설정에서만 관리
+
+#### GitHub Integration  
+- ✅ 레포지토리 URL → 공개 정보이므로 문서에 기록 가능
+- ⚠️ Personal Access Token → 환경변수 처리 필요
+- ⚠️ Webhook Secret → 별도 보안 저장소 관리 필요
+
+### 💡 모범 사례
+1. **계층별 보안**: 개발/스테이징/프로덕션 환경 분리
+2. **최소 권한 원칙**: 필요한 최소한의 권한만 부여  
+3. **정기적 로테이션**: API 키 주기적 갱신
+4. **모니터링**: 비정상적인 접근 패턴 감지
+5. **백업 계획**: 키 분실 시 복구 방안 수립
 
 ---
 
