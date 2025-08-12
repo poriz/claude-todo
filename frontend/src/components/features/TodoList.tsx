@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Todo } from '../../types';
+import type { Todo, Category } from '../../../../shared/types';
 import { TodoItem } from './TodoItem';
 
 interface TodoListProps {
@@ -7,9 +7,10 @@ interface TodoListProps {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
+  getCategoryById?: (id: string) => Category | undefined;
 }
 
-export const TodoList: React.FC<TodoListProps> = ({ todos, onToggle, onDelete, onEdit }) => {
+export const TodoList: React.FC<TodoListProps> = ({ todos, onToggle, onDelete, onEdit, getCategoryById }) => {
   if (todos.length === 0) {
     return (
       <div className="text-center py-12">
@@ -29,6 +30,7 @@ export const TodoList: React.FC<TodoListProps> = ({ todos, onToggle, onDelete, o
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
+          getCategoryById={getCategoryById}
         />
       ))}
     </div>

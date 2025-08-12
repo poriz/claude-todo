@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import type { Todo } from '../../types';
+import type { Todo, Category } from '../../../../shared/types';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Card } from '../ui/Card';
 
 interface AddTodoFormProps {
   onAddTodo: (todo: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  categories: Category[];
 }
 
-export const AddTodoForm: React.FC<AddTodoFormProps> = ({ onAddTodo }) => {
+export const AddTodoForm: React.FC<AddTodoFormProps> = ({ onAddTodo, categories }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [categoryId, setCategoryId] = useState<string>('');
   const [dueDate, setDueDate] = useState('');
   const [tags, setTags] = useState('');
 
@@ -25,6 +27,7 @@ export const AddTodoForm: React.FC<AddTodoFormProps> = ({ onAddTodo }) => {
       description: description.trim() || undefined,
       completed: false,
       priority,
+      categoryId: categoryId || undefined,
       dueDate: dueDate ? new Date(dueDate) : undefined,
       tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
     };
@@ -35,6 +38,7 @@ export const AddTodoForm: React.FC<AddTodoFormProps> = ({ onAddTodo }) => {
     setTitle('');
     setDescription('');
     setPriority('medium');
+    setCategoryId('');
     setDueDate('');
     setTags('');
   };
@@ -65,7 +69,7 @@ export const AddTodoForm: React.FC<AddTodoFormProps> = ({ onAddTodo }) => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               우선순위
@@ -78,6 +82,24 @@ export const AddTodoForm: React.FC<AddTodoFormProps> = ({ onAddTodo }) => {
               <option value="low">낮음</option>
               <option value="medium">보통</option>
               <option value="high">높음</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              카테고리 (선택사항)
+            </label>
+            <select
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">카테고리 없음</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
             </select>
           </div>
 

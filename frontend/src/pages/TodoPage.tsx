@@ -6,7 +6,7 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 
 export const TodoPage: React.FC = () => {
-  const { todos, createTodo, toggleComplete, deleteTodo, filters, setFilters } = useTodos();
+  const { todos, categories, createTodo, toggleComplete, deleteTodo, filters, setFilters, getCategoryById } = useTodos();
   const [, setEditingId] = useState<string | null>(null);
 
   const handleEdit = (id: string) => {
@@ -27,6 +27,10 @@ export const TodoPage: React.FC = () => {
     setFilters({ ...filters, priority });
   };
 
+  const handleCategoryFilter = (category: string | undefined) => {
+    setFilters({ ...filters, category });
+  };
+
   const completedCount = todos.filter(todo => todo.completed).length;
   const activeCount = todos.filter(todo => !todo.completed).length;
 
@@ -40,7 +44,7 @@ export const TodoPage: React.FC = () => {
         </div>
       </div>
 
-      <AddTodoForm onAddTodo={createTodo} />
+      <AddTodoForm onAddTodo={createTodo} categories={categories} />
 
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
@@ -78,8 +82,25 @@ export const TodoPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex gap-2 mb-4">
-          <span className="text-sm text-gray-600 self-center">우선순위:</span>
+        <div className="flex flex-wrap gap-4 mb-4">
+          <div className="flex gap-2">
+            <span className="text-sm text-gray-600 self-center">카테고리:</span>
+            <select
+              value={filters.category || ''}
+              onChange={(e) => handleCategoryFilter(e.target.value || undefined)}
+              className="text-sm px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">전체</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex gap-2">
+            <span className="text-sm text-gray-600 self-center">우선순위:</span>
           <Button
             variant={!filters.priority ? 'primary' : 'outline'}
             size="sm"
@@ -108,6 +129,7 @@ export const TodoPage: React.FC = () => {
           >
             낮음
           </Button>
+          </div>
         </div>
       </div>
 
@@ -116,6 +138,7 @@ export const TodoPage: React.FC = () => {
         onToggle={toggleComplete}
         onDelete={deleteTodo}
         onEdit={handleEdit}
+        getCategoryById={getCategoryById}
       />
     </div>
   );

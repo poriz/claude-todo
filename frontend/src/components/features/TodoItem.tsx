@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Todo } from '../../types';
+import type { Todo, Category } from '../../../../shared/types';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 
@@ -8,14 +8,29 @@ interface TodoItemProps {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
+  getCategoryById?: (id: string) => Category | undefined;
 }
 
-export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete, onEdit }) => {
+export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete, onEdit, getCategoryById }) => {
   const priorityColors = {
     low: 'bg-green-100 text-green-800',
     medium: 'bg-yellow-100 text-yellow-800',
     high: 'bg-red-100 text-red-800',
   };
+
+  const getCategoryColorClasses = (color: string) => {
+    const colors = {
+      blue: { border: 'border-l-blue-500', bg: 'bg-blue-500' },
+      green: { border: 'border-l-green-500', bg: 'bg-green-500' },
+      purple: { border: 'border-l-purple-500', bg: 'bg-purple-500' },
+      orange: { border: 'border-l-orange-500', bg: 'bg-orange-500' },
+      red: { border: 'border-l-red-500', bg: 'bg-red-500' },
+      pink: { border: 'border-l-pink-500', bg: 'bg-pink-500' },
+    };
+    return colors[color as keyof typeof colors] || colors.blue;
+  };
+
+  const category = todo.categoryId && getCategoryById ? getCategoryById(todo.categoryId) : null;
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('ko-KR', {
@@ -26,7 +41,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete, on
   };
 
   return (
-    <Card className={`p-4 ${todo.completed ? 'opacity-60' : ''}`}>
+    <Card className={`p-4 ${todo.completed ? 'opacity-60' : ''} relative ${category ? `border-l-4 ${getCategoryColorClasses(category.color).border}` : ''}`}>
       <div className="flex items-start gap-3">
         <input
           type="checkbox"
@@ -40,6 +55,14 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete, on
             <h3 className={`text-lg font-medium ${todo.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
               {todo.title}
             </h3>
+            {category && (
+              <span 
+                className={`px-2 py-1 text-xs font-medium rounded text-white ${getCategoryColorClasses(category.color).bg}`}
+                title={category.name}
+              >
+                {category.name}
+              </span>
+            )}
             <span className={`px-2 py-1 text-xs font-medium rounded-full ${priorityColors[todo.priority]}`}>
               {todo.priority}
             </span>
