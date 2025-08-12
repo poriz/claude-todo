@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { useTodos } from '../hooks/useTodos';
 import { AddTodoForm } from '../components/features/AddTodoForm';
 import { TodoList } from '../components/features/TodoList';
-import { Input } from '../components/ui/Input';
-import { Button } from '../components/ui/Button';
 
 export const TodoPage: React.FC = () => {
   const { todos, categories, createTodo, toggleComplete, deleteTodo, filters, setFilters, getCategoryById } = useTodos();
@@ -35,103 +33,144 @@ export const TodoPage: React.FC = () => {
   const activeCount = todos.filter(todo => !todo.completed).length;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-6">
-        <div className="flex gap-4 text-sm text-gray-600">
-          <span>전체: {todos.length}개</span>
-          <span>진행 중: {activeCount}개</span>
-          <span>완료: {completedCount}개</span>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                      <span className="text-white font-medium">📊</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">전체 할 일</dt>
+                      <dd className="text-3xl font-semibold text-gray-900">{todos.length}</dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
+                      <span className="text-white font-medium">⏳</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">진행 중</dt>
+                      <dd className="text-3xl font-semibold text-gray-900">{activeCount}</dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                      <span className="text-white font-medium">✅</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">완료</dt>
+                      <dd className="text-3xl font-semibold text-gray-900">{completedCount}</dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
       <AddTodoForm onAddTodo={createTodo} categories={categories} />
 
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row gap-4 mb-4">
-          <div className="flex-1">
-            <Input
-              type="text"
-              placeholder="할 일 검색..."
-              value={filters.search || ''}
-              onChange={handleSearch}
-            />
-          </div>
-          
-          <div className="flex gap-2">
-            <Button
-              variant={filters.status === 'all' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => handleStatusFilter('all')}
-            >
-              전체
-            </Button>
-            <Button
-              variant={filters.status === 'active' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => handleStatusFilter('active')}
-            >
-              진행 중
-            </Button>
-            <Button
-              variant={filters.status === 'completed' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => handleStatusFilter('completed')}
-            >
-              완료
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-4 mb-4">
-          <div className="flex gap-2">
-            <span className="text-sm text-gray-600 self-center">카테고리:</span>
-            <select
-              value={filters.category || ''}
-              onChange={(e) => handleCategoryFilter(e.target.value || undefined)}
-              className="text-sm px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">전체</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex gap-2">
-            <span className="text-sm text-gray-600 self-center">우선순위:</span>
-          <Button
-            variant={!filters.priority ? 'primary' : 'outline'}
-            size="sm"
-            onClick={() => handlePriorityFilter(undefined)}
-          >
-            전체
-          </Button>
-          <Button
-            variant={filters.priority === 'high' ? 'primary' : 'outline'}
-            size="sm"
-            onClick={() => handlePriorityFilter('high')}
-          >
-            높음
-          </Button>
-          <Button
-            variant={filters.priority === 'medium' ? 'primary' : 'outline'}
-            size="sm"
-            onClick={() => handlePriorityFilter('medium')}
-          >
-            보통
-          </Button>
-          <Button
-            variant={filters.priority === 'low' ? 'primary' : 'outline'}
-            size="sm"
-            onClick={() => handlePriorityFilter('low')}
-          >
-            낮음
-          </Button>
+        <div className="mb-8">
+          <div className="bg-white shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <label htmlFor="search" className="sr-only">검색</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <input
+                      id="search"
+                      type="text"
+                      placeholder="할 일 검색..."
+                      value={filters.search || ''}
+                      onChange={handleSearch}
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex space-x-3">
+                  <div className="flex-1">
+                    <label htmlFor="status" className="block text-sm font-medium text-gray-700">상태</label>
+                    <select
+                      id="status"
+                      value={filters.status}
+                      onChange={(e) => handleStatusFilter(e.target.value as 'all' | 'active' | 'completed')}
+                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+                    >
+                      <option value="all">전체</option>
+                      <option value="active">진행 중</option>
+                      <option value="completed">완료</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="category" className="block text-sm font-medium text-gray-700">카테고리</label>
+                  <select
+                    id="category"
+                    value={filters.category || ''}
+                    onChange={(e) => handleCategoryFilter(e.target.value || undefined)}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+                  >
+                    <option value="">전체 카테고리</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label htmlFor="priority" className="block text-sm font-medium text-gray-700">우선순위</label>
+                  <select
+                    id="priority"
+                    value={filters.priority || ''}
+                    onChange={(e) => handlePriorityFilter(e.target.value as 'low' | 'medium' | 'high' | undefined || undefined)}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+                  >
+                    <option value="">전체 우선순위</option>
+                    <option value="high">높음</option>
+                    <option value="medium">보통</option>
+                    <option value="low">낮음</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
       <TodoList
         todos={todos}
@@ -140,6 +179,7 @@ export const TodoPage: React.FC = () => {
         onEdit={handleEdit}
         getCategoryById={getCategoryById}
       />
+      </div>
     </div>
   );
 };
