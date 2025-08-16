@@ -32,6 +32,7 @@ export interface TodoFilters {
   category?: string;
   tags?: string[];
   search?: string;
+  dueDate?: 'all' | 'overdue' | 'today' | 'tomorrow' | 'thisWeek' | 'thisMonth' | 'future' | 'noDueDate';
 }
 
 export interface TodoState {

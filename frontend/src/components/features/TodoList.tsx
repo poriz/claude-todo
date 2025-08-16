@@ -1,16 +1,35 @@
 import React from 'react';
 import type { Todo, Category } from '../../../../shared/types';
 import { TodoItem } from './TodoItem';
+import { EditTodoForm } from './EditTodoForm';
 
 interface TodoListProps {
   todos: Todo[];
+  categories: Category[];
+  editingId: string | null;
+  searchTerm?: string;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
+  onUpdate: (id: string, updates: Partial<Omit<Todo, 'id' | 'createdAt'>>) => void;
+  onUpdatePriority?: (id: string, priority: 'low' | 'medium' | 'high') => void;
+  onCancelEdit: () => void;
   getCategoryById?: (id: string) => Category | undefined;
 }
 
-export const TodoList: React.FC<TodoListProps> = ({ todos, onToggle, onDelete, onEdit, getCategoryById }) => {
+export const TodoList: React.FC<TodoListProps> = ({ 
+  todos, 
+  categories,
+  editingId,
+  searchTerm,
+  onToggle, 
+  onDelete, 
+  onEdit, 
+  onUpdate,
+  onUpdatePriority,
+  onCancelEdit,
+  getCategoryById 
+}) => {
   if (todos.length === 0) {
     return (
       <div className="bg-white shadow rounded-lg">
@@ -28,14 +47,29 @@ export const TodoList: React.FC<TodoListProps> = ({ todos, onToggle, onDelete, o
   return (
     <div className="space-y-4">
       {todos.map((todo) => (
-        <TodoItem
-          key={todo.id}
-          todo={todo}
-          onToggle={onToggle}
-          onDelete={onDelete}
-          onEdit={onEdit}
-          getCategoryById={getCategoryById}
-        />
+        <div key={todo.id}>
+          {editingId === todo.id ? (
+            <EditTodoForm
+              todo={todo}
+              categories={categories}
+              onUpdate={(id, updates) => {
+                onUpdate(id, updates);
+                onCancelEdit();
+              }}
+              onCancel={onCancelEdit}
+            />
+          ) : (
+            <TodoItem
+              todo={todo}
+              onToggle={onToggle}
+              onDelete={onDelete}
+              onEdit={onEdit}
+              onUpdatePriority={onUpdatePriority}
+              getCategoryById={getCategoryById}
+              searchTerm={searchTerm}
+            />
+          )}
+        </div>
       ))}
     </div>
   );

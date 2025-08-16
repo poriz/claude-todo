@@ -2,19 +2,39 @@ import React, { useState } from 'react';
 import { useTodos } from '../hooks/useTodos';
 import { AddTodoForm } from '../components/features/AddTodoForm';
 import { TodoList } from '../components/features/TodoList';
+import { CategoryManager } from '../components/features/CategoryManager';
+import { AdvancedSearchBar } from '../components/features/AdvancedSearchBar';
+import { FilterPresets } from '../components/features/FilterPresets';
+import { getDueDateCategory } from '../utils/dateUtils';
 
 export const TodoPage: React.FC = () => {
-  const { todos, categories, createTodo, toggleComplete, deleteTodo, filters, setFilters, getCategoryById } = useTodos();
-  const [, setEditingId] = useState<string | null>(null);
+  const { 
+    todos, 
+    categories, 
+    createTodo, 
+    updateTodo,
+    toggleComplete, 
+    deleteTodo, 
+    updatePriority,
+    filters, 
+    setFilters, 
+    getCategoryById,
+    createCategory,
+    updateCategory,
+    deleteCategory 
+  } = useTodos();
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleEdit = (id: string) => {
     setEditingId(id);
-    // TODO: 수정 모달 또는 인라인 편집 구현
-    console.log('Edit todo:', id);
   };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters({ ...filters, search: e.target.value });
+  const handleCancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const handleFiltersChange = (newFilters: typeof filters) => {
+    setFilters(newFilters);
   };
 
   const handleStatusFilter = (status: 'all' | 'active' | 'completed') => {
@@ -29,14 +49,22 @@ export const TodoPage: React.FC = () => {
     setFilters({ ...filters, category });
   };
 
+  const handleDueDateFilter = (dueDate: 'all' | 'overdue' | 'today' | 'tomorrow' | 'thisWeek' | 'thisMonth' | 'future' | 'noDueDate') => {
+    setFilters({ ...filters, dueDate });
+  };
+
   const completedCount = todos.filter(todo => todo.completed).length;
   const activeCount = todos.filter(todo => !todo.completed).length;
+
+  // 마감일 관련 통계 계산
+  const overdueCount = todos.filter(todo => !todo.completed && getDueDateCategory(todo.dueDate) === 'overdue').length;
+  const todayCount = todos.filter(todo => !todo.completed && getDueDateCategory(todo.dueDate) === 'today').length;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-5">
                 <div className="flex items-center">
@@ -90,8 +118,51 @@ export const TodoPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-red-500 rounded-md flex items-center justify-center">
+                      <span className="text-white font-medium">⚠️</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">지연</dt>
+                      <dd className="text-3xl font-semibold text-gray-900">{overdueCount}</dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="p-5">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                      <span className="text-white font-medium">📅</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">오늘</dt>
+                      <dd className="text-3xl font-semibold text-gray-900">{todayCount}</dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
+      <CategoryManager
+        categories={categories}
+        onCreateCategory={createCategory}
+        onUpdateCategory={updateCategory}
+        onDeleteCategory={deleteCategory}
+      />
 
       <AddTodoForm onAddTodo={createTodo} categories={categories} />
 
@@ -100,22 +171,11 @@ export const TodoPage: React.FC = () => {
             <div className="px-4 py-5 sm:p-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                  <label htmlFor="search" className="sr-only">검색</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                    </div>
-                    <input
-                      id="search"
-                      type="text"
-                      placeholder="할 일 검색..."
-                      value={filters.search || ''}
-                      onChange={handleSearch}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
+                  <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">검색</label>
+                  <AdvancedSearchBar
+                    filters={filters}
+                    onFiltersChange={handleFiltersChange}
+                  />
                 </div>
                 
                 <div className="flex space-x-3">
@@ -135,22 +195,45 @@ export const TodoPage: React.FC = () => {
                 </div>
               </div>
               
-              <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div>
                   <label htmlFor="category" className="block text-sm font-medium text-gray-700">카테고리</label>
-                  <select
-                    id="category"
-                    value={filters.category || ''}
-                    onChange={(e) => handleCategoryFilter(e.target.value || undefined)}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-                  >
-                    <option value="">전체 카테고리</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => handleCategoryFilter(undefined)}
+                      className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium border ${
+                        !filters.category 
+                          ? 'bg-blue-100 border-blue-300 text-blue-700' 
+                          : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      전체
+                    </button>
+                    {categories.map((category) => {
+                      const isSelected = filters.category === category.id;
+                      const colorClasses = {
+                        blue: isSelected ? 'bg-blue-500 text-white border-blue-500' : 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200',
+                        green: isSelected ? 'bg-green-500 text-white border-green-500' : 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
+                        purple: isSelected ? 'bg-purple-500 text-white border-purple-500' : 'bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200',
+                        orange: isSelected ? 'bg-orange-500 text-white border-orange-500' : 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200',
+                        red: isSelected ? 'bg-red-500 text-white border-red-500' : 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200',
+                        pink: isSelected ? 'bg-pink-500 text-white border-pink-500' : 'bg-pink-100 text-pink-700 border-pink-300 hover:bg-pink-200',
+                        yellow: isSelected ? 'bg-yellow-500 text-white border-yellow-500' : 'bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200',
+                        indigo: isSelected ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-indigo-100 text-indigo-700 border-indigo-300 hover:bg-indigo-200',
+                      };
+                      const categoryColorClass = colorClasses[category.color as keyof typeof colorClasses] || colorClasses.blue;
+                      
+                      return (
+                        <button
+                          key={category.id}
+                          onClick={() => handleCategoryFilter(category.id)}
+                          className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium border ${categoryColorClass}`}
+                        >
+                          {category.name}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 
                 <div>
@@ -162,11 +245,39 @@ export const TodoPage: React.FC = () => {
                     className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                   >
                     <option value="">전체 우선순위</option>
-                    <option value="high">높음</option>
-                    <option value="medium">보통</option>
-                    <option value="low">낮음</option>
+                    <option value="high">🔴 높음</option>
+                    <option value="medium">🟡 보통</option>
+                    <option value="low">🟢 낮음</option>
                   </select>
                 </div>
+
+                <div>
+                  <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700">마감일</label>
+                  <select
+                    id="dueDate"
+                    value={filters.dueDate || 'all'}
+                    onChange={(e) => handleDueDateFilter(e.target.value as 'all' | 'overdue' | 'today' | 'tomorrow' | 'thisWeek' | 'thisMonth' | 'future' | 'noDueDate')}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+                  >
+                    <option value="all">전체</option>
+                    <option value="overdue">⚠️ 지연</option>
+                    <option value="today">📅 오늘</option>
+                    <option value="tomorrow">⏰ 내일</option>
+                    <option value="thisWeek">📊 이번 주</option>
+                    <option value="thisMonth">📆 이번 달</option>
+                    <option value="future">🔮 미래</option>
+                    <option value="noDueDate">❌ 마감일 없음</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* 필터 프리셋 */}
+              <div className="mt-6">
+                <FilterPresets
+                  currentFilters={filters}
+                  onApplyPreset={handleFiltersChange}
+                  categories={categories}
+                />
               </div>
             </div>
           </div>
@@ -174,9 +285,15 @@ export const TodoPage: React.FC = () => {
 
       <TodoList
         todos={todos}
+        categories={categories}
+        editingId={editingId}
+        searchTerm={filters.search}
         onToggle={toggleComplete}
         onDelete={deleteTodo}
         onEdit={handleEdit}
+        onUpdate={updateTodo}
+        onUpdatePriority={updatePriority}
+        onCancelEdit={handleCancelEdit}
         getCategoryById={getCategoryById}
       />
       </div>

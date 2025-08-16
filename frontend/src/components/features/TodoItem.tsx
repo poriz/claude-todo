@@ -1,15 +1,19 @@
 import React from 'react';
 import type { Todo, Category } from '../../../../shared/types';
+import { formatDate, formatRelativeDate } from '../../utils/dateUtils';
+import { HighlightText } from '../ui/HighlightText';
 
 interface TodoItemProps {
   todo: Todo;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
+  onUpdatePriority?: (id: string, priority: 'low' | 'medium' | 'high') => void;
   getCategoryById?: (id: string) => Category | undefined;
+  searchTerm?: string;
 }
 
-export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete, onEdit, getCategoryById }) => {
+export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete, onEdit, onUpdatePriority, getCategoryById, searchTerm }) => {
   const priorityColors = {
     low: 'bg-green-100 text-green-800',
     medium: 'bg-yellow-100 text-yellow-800',
@@ -24,18 +28,22 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete, on
       orange: { border: 'border-l-orange-500', bg: 'bg-orange-500' },
       red: { border: 'border-l-red-500', bg: 'bg-red-500' },
       pink: { border: 'border-l-pink-500', bg: 'bg-pink-500' },
+      yellow: { border: 'border-l-yellow-500', bg: 'bg-yellow-500' },
+      indigo: { border: 'border-l-indigo-500', bg: 'bg-indigo-500' },
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
 
   const category = todo.categoryId && getCategoryById ? getCategoryById(todo.categoryId) : null;
+  const dueDateInfo = todo.dueDate ? formatRelativeDate(todo.dueDate) : null;
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    }).format(new Date(date));
+  const handlePriorityClick = () => {
+    if (!onUpdatePriority) return;
+    
+    const priorities: ('low' | 'medium' | 'high')[] = ['low', 'medium', 'high'];
+    const currentIndex = priorities.indexOf(todo.priority);
+    const nextIndex = (currentIndex + 1) % priorities.length;
+    onUpdatePriority(todo.id, priorities[nextIndex]);
   };
 
   return (
@@ -54,7 +62,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete, on
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-3 mb-2">
               <h3 className={`text-lg font-medium ${todo.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                {todo.title}
+                <HighlightText text={todo.title} searchTerm={searchTerm} />
               </h3>
               
               <div className="flex items-center space-x-2">
@@ -67,30 +75,47 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete, on
                   </span>
                 )}
                 
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[todo.priority]}`}>
-                  {todo.priority === 'high' && '높음'}
-                  {todo.priority === 'medium' && '보통'}
-                  {todo.priority === 'low' && '낮음'}
-                </span>
+                <button
+                  onClick={handlePriorityClick}
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                    onUpdatePriority 
+                      ? `${priorityColors[todo.priority]} hover:opacity-80 cursor-pointer` 
+                      : priorityColors[todo.priority]
+                  }`}
+                  title={onUpdatePriority ? "우선순위 변경하기" : undefined}
+                >
+                  {todo.priority === 'high' && '🔴 높음'}
+                  {todo.priority === 'medium' && '🟡 보통'}
+                  {todo.priority === 'low' && '🟢 낮음'}
+                </button>
               </div>
             </div>
             
             {todo.description && (
               <p className={`text-sm mb-3 ${todo.completed ? 'text-gray-400' : 'text-gray-600'}`}>
-                {todo.description}
+                <HighlightText text={todo.description} searchTerm={searchTerm} />
               </p>
             )}
             
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span>생성: {formatDate(todo.createdAt)}</span>
-              {todo.dueDate && (
-                <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
-                  new Date(todo.dueDate) < new Date() && !todo.completed
-                    ? 'bg-red-100 text-red-600'
-                    : 'bg-gray-100 text-gray-600'
-                }`}>
-                  마감: {formatDate(todo.dueDate)}
-                </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4 text-sm text-gray-500">
+                <span>생성: {formatDate(todo.createdAt)}</span>
+              </div>
+              
+              {dueDateInfo && (
+                <div className="flex items-center space-x-2">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${dueDateInfo.color}`}>
+                    {dueDateInfo.urgency === 'high' && (
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                    마감: {dueDateInfo.label}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {formatDate(todo.dueDate!)}
+                  </span>
+                </div>
               )}
             </div>
             
@@ -101,7 +126,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete, on
                     key={tag}
                     className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800"
                   >
-                    #{tag}
+                    #<HighlightText text={tag} searchTerm={searchTerm} />
                   </span>
                 ))}
               </div>

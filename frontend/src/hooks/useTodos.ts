@@ -1,5 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Todo, TodoFilters, Category } from '../../../shared/types';
+import { sortTodosByPriorityAndDate, getDueDateCategory } from '../utils/dateUtils';
+import { useDebounce } from './useDebounce';
 
 const DEFAULT_CATEGORIES: Category[] = [
   { id: 'work', name: '업무', color: 'blue', createdAt: new Date() },
@@ -66,23 +68,44 @@ export const useTodos = () => {
     updateTodo(id, { completed: !todos.find(t => t.id === id)?.completed });
   }, [todos, updateTodo]);
 
-  const filteredTodos = todos.filter(todo => {
-    if (filters.status === 'active' && todo.completed) return false;
-    if (filters.status === 'completed' && !todo.completed) return false;
-    if (filters.priority && todo.priority !== filters.priority) return false;
-    if (filters.category && todo.categoryId !== filters.category) return false;
-    if (filters.tags && filters.tags.length > 0) {
-      const hasMatchingTag = filters.tags.some(tag => todo.tags.includes(tag));
-      if (!hasMatchingTag) return false;
-    }
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      const matchesTitle = todo.title.toLowerCase().includes(searchLower);
-      const matchesDescription = todo.description?.toLowerCase().includes(searchLower);
-      if (!matchesTitle && !matchesDescription) return false;
-    }
-    return true;
-  });
+  const updatePriority = useCallback((id: string, priority: 'low' | 'medium' | 'high') => {
+    updateTodo(id, { priority });
+  }, [updateTodo]);
+
+  // 검색어 디바운싱으로 성능 최적화
+  const debouncedSearchTerm = useDebounce(filters.search || '', 300);
+
+  // 필터링 및 정렬 최적화 (useMemo로 캐싱)
+  const filteredAndSortedTodos = useMemo(() => {
+    const filtered = todos.filter(todo => {
+      if (filters.status === 'active' && todo.completed) return false;
+      if (filters.status === 'completed' && !todo.completed) return false;
+      if (filters.priority && todo.priority !== filters.priority) return false;
+      if (filters.category && todo.categoryId !== filters.category) return false;
+      if (filters.tags && filters.tags.length > 0) {
+        const hasMatchingTag = filters.tags.some(tag => todo.tags.includes(tag));
+        if (!hasMatchingTag) return false;
+      }
+      if (debouncedSearchTerm) {
+        const searchLower = debouncedSearchTerm.toLowerCase();
+        const matchesTitle = todo.title.toLowerCase().includes(searchLower);
+        const matchesDescription = todo.description?.toLowerCase().includes(searchLower);
+        const matchesTags = todo.tags.some(tag => tag.toLowerCase().includes(searchLower));
+        if (!matchesTitle && !matchesDescription && !matchesTags) return false;
+      }
+      if (filters.dueDate && filters.dueDate !== 'all') {
+        const todoDateCategory = getDueDateCategory(todo.dueDate);
+        if (filters.dueDate === 'noDueDate') {
+          if (todoDateCategory !== null) return false;
+        } else if (todoDateCategory !== filters.dueDate) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    return sortTodosByPriorityAndDate(filtered);
+  }, [todos, filters.status, filters.priority, filters.category, filters.tags, debouncedSearchTerm, filters.dueDate]);
 
   const createCategory = useCallback((categoryData: Omit<Category, 'id' | 'createdAt'>) => {
     const newCategory: Category = {
@@ -118,7 +141,7 @@ export const useTodos = () => {
   }, [categories]);
 
   return {
-    todos: filteredTodos,
+    todos: filteredAndSortedTodos,
     allTodos: todos,
     categories,
     filters,
@@ -129,6 +152,7 @@ export const useTodos = () => {
     updateTodo,
     deleteTodo,
     toggleComplete,
+    updatePriority,
     createCategory,
     updateCategory,
     deleteCategory,
