@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # 백엔드 API 서버
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: claude-todo-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:./data/prod.db
+    volumes:
+      # SQLite 데이터베이스 영구 저장을 위한 볼륨
+      - backend-data:/app/data
+      # 개발 시 실시간 반영을 위한 볼륨 (선택적)
+      # - ./backend/src:/app/src
+    networks:
+      - claude-todo-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # 프론트엔드 웹 서버  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: claude-todo-frontend
+    ports:
+      - "80:80"    # HTTP
+      - "3000:80"  # 개발용 포트
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - claude-todo-network
+
+# 볼륨 정의 (데이터 영구 저장)
+volumes:
+  backend-data:
+    driver: local
+
+# 네트워크 정의
+networks:
+  claude-todo-network:
+    driver: bridge

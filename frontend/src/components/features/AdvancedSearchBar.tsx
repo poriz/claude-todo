@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import type { TodoFilters } from '../../../../shared/types';
+import type { TodoFilters } from '../../types';
 
 interface AdvancedSearchBarProps {
   filters: TodoFilters;
@@ -214,7 +214,7 @@ export const AdvancedSearchBar: React.FC<AdvancedSearchBarProps> = ({
               setIsExpanded(true);
               onFocus?.();
             }}
-            onBlur={(e) => {
+            onBlur={() => {
               // suggestions 클릭 시에는 blur 되지 않도록
               setTimeout(() => {
                 setIsExpanded(false);

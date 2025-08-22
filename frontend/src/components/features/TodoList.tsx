@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Todo, Category } from '../../../../shared/types';
+import type { Todo, Category } from '../../types';
 import { TodoItem } from './TodoItem';
 import { EditTodoForm } from './EditTodoForm';
 

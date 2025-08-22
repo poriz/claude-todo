@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Category } from '../../../../shared/types';
+import type { Category } from '../../types';
 
 interface CategoryManagerProps {
   categories: Category[];

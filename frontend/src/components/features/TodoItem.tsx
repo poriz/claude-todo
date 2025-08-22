@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Todo, Category } from '../../../../shared/types';
+import type { Todo, Category } from '../../types';
 import { formatDate, formatRelativeDate } from '../../utils/dateUtils';
 import { HighlightText } from '../ui/HighlightText';
 

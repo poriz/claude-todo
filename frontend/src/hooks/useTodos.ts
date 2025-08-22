@@ -1,82 +1,130 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import type { Todo, TodoFilters, Category } from '../../../shared/types';
+import { useState, useCallback, useMemo } from 'react';
+import type { Todo, TodoFilters, Category } from '../types';
 import { sortTodosByPriorityAndDate, getDueDateCategory } from '../utils/dateUtils';
 import { useDebounce } from './useDebounce';
-
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'work', name: '업무', color: 'blue', createdAt: new Date() },
-  { id: 'personal', name: '개인', color: 'green', createdAt: new Date() },
-  { id: 'study', name: '학습', color: 'purple', createdAt: new Date() },
-  { id: 'shopping', name: '쇼핑', color: 'orange', createdAt: new Date() },
-];
+import { useApi } from './useApi';
+import { todosApi, categoriesApi, type CreateTodoRequest, type UpdateTodoRequest } from '../services/api';
 
 export const useTodos = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
   const [filters, setFilters] = useState<TodoFilters>({ status: 'all' });
-  const [loading] = useState(false);
-  const [error] = useState<string | null>(null);
+  
+  // API 데이터 fetch
+  const { 
+    data: todos = [], 
+    loading: todosLoading, 
+    error: todosError, 
+    refetch: refetchTodos 
+  } = useApi(todosApi.getAll, []);
 
-  // 로컬스토리지에서 데이터 로드
-  useEffect(() => {
-    const savedTodos = localStorage.getItem('todos');
-    const savedCategories = localStorage.getItem('todos-categories');
-    
-    if (savedTodos) {
-      setTodos(JSON.parse(savedTodos));
+  const { 
+    data: categories = [], 
+    loading: categoriesLoading, 
+    error: categoriesError,
+    refetch: refetchCategories 
+  } = useApi(categoriesApi.getAll, []);
+
+  // 로딩/에러 상태
+  const loading = todosLoading || categoriesLoading;
+  const error = todosError || categoriesError;
+
+  // CRUD 작업들
+  const createTodo = useCallback(async (todoData: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const createData: CreateTodoRequest = {
+        title: todoData.title,
+        description: todoData.description,
+        priority: todoData.priority,
+        dueDate: todoData.dueDate,
+        categoryId: todoData.categoryId,
+        tags: todoData.tags,
+      };
+
+      const newTodo = await todosApi.create(createData);
+      await refetchTodos(); // 데이터 재조회
+      return newTodo;
+    } catch (error) {
+      console.error('Create todo failed:', error);
+      throw error;
     }
-    
-    if (savedCategories) {
-      setCategories(JSON.parse(savedCategories));
+  }, [refetchTodos]);
+
+  const updateTodo = useCallback(async (id: string, updates: Partial<Omit<Todo, 'id' | 'createdAt'>>) => {
+    try {
+      const updateData: UpdateTodoRequest = {
+        title: updates.title,
+        description: updates.description,
+        completed: updates.completed,
+        priority: updates.priority,
+        dueDate: updates.dueDate,
+        categoryId: updates.categoryId,
+        tags: updates.tags,
+      };
+
+      const updatedTodo = await todosApi.update(id, updateData);
+      await refetchTodos();
+      return updatedTodo;
+    } catch (error) {
+      console.error('Update todo failed:', error);
+      throw error;
     }
-  }, []);
+  }, [refetchTodos]);
 
-  // 로컬스토리지에 데이터 저장
-  useEffect(() => {
-    localStorage.setItem('todos', JSON.stringify(todos));
-  }, [todos]);
+  const deleteTodo = useCallback(async (id: string) => {
+    try {
+      await todosApi.delete(id);
+      await refetchTodos();
+    } catch (error) {
+      console.error('Delete todo failed:', error);
+      throw error;
+    }
+  }, [refetchTodos]);
 
-  useEffect(() => {
-    localStorage.setItem('todos-categories', JSON.stringify(categories));
-  }, [categories]);
-
-  const createTodo = useCallback((todoData: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newTodo: Todo = {
-      ...todoData,
-      id: crypto.randomUUID(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    setTodos(prev => [newTodo, ...prev]);
-    return newTodo;
-  }, []);
-
-  const updateTodo = useCallback((id: string, updates: Partial<Omit<Todo, 'id' | 'createdAt'>>) => {
-    setTodos(prev => prev.map(todo => 
-      todo.id === id 
-        ? { ...todo, ...updates, updatedAt: new Date() }
-        : todo
-    ));
-  }, []);
-
-  const deleteTodo = useCallback((id: string) => {
-    setTodos(prev => prev.filter(todo => todo.id !== id));
-  }, []);
-
-  const toggleComplete = useCallback((id: string) => {
-    updateTodo(id, { completed: !todos.find(t => t.id === id)?.completed });
+  const toggleComplete = useCallback(async (id: string) => {
+    const todo = todos?.find(t => t.id === id);
+    if (todo) {
+      await updateTodo(id, { completed: !todo.completed });
+    }
   }, [todos, updateTodo]);
 
-  const updatePriority = useCallback((id: string, priority: 'low' | 'medium' | 'high') => {
-    updateTodo(id, { priority });
+  const updatePriority = useCallback(async (id: string, priority: 'low' | 'medium' | 'high') => {
+    await updateTodo(id, { priority });
   }, [updateTodo]);
 
-  // 검색어 디바운싱으로 성능 최적화
+  // 카테고리 관련 기능
+  const createCategory = useCallback(async (categoryData: Omit<Category, 'id' | 'createdAt'>) => {
+    try {
+      const newCategory = await categoriesApi.create({
+        name: categoryData.name,
+        color: categoryData.color,
+      });
+      await refetchCategories();
+      return newCategory;
+    } catch (error) {
+      console.error('Create category failed:', error);
+      throw error;
+    }
+  }, [refetchCategories]);
+
+  const updateCategory = useCallback((_id: string, _updates: Partial<Omit<Category, 'id' | 'createdAt'>>) => {
+    // TODO: 백엔드에 카테고리 수정 API 추가 후 구현
+    console.warn('Category update not implemented in backend yet');
+  }, []);
+
+  const deleteCategory = useCallback((_id: string) => {
+    // TODO: 백엔드에 카테고리 삭제 API 추가 후 구현
+    console.warn('Category delete not implemented in backend yet');
+  }, []);
+
+  const getCategoryById = useCallback((id: string) => {
+    return categories?.find(category => category.id === id);
+  }, [categories]);
+
+  // 검색어 디바운싱
   const debouncedSearchTerm = useDebounce(filters.search || '', 300);
 
-  // 필터링 및 정렬 최적화 (useMemo로 캐싱)
+  // 필터링 및 정렬 (클라이언트 사이드)
   const filteredAndSortedTodos = useMemo(() => {
+    if (!todos) return [];
     const filtered = todos.filter(todo => {
       if (filters.status === 'active' && todo.completed) return false;
       if (filters.status === 'completed' && !todo.completed) return false;
@@ -107,43 +155,10 @@ export const useTodos = () => {
     return sortTodosByPriorityAndDate(filtered);
   }, [todos, filters.status, filters.priority, filters.category, filters.tags, debouncedSearchTerm, filters.dueDate]);
 
-  const createCategory = useCallback((categoryData: Omit<Category, 'id' | 'createdAt'>) => {
-    const newCategory: Category = {
-      ...categoryData,
-      id: crypto.randomUUID(),
-      createdAt: new Date(),
-    };
-
-    setCategories(prev => [...prev, newCategory]);
-    return newCategory;
-  }, []);
-
-  const updateCategory = useCallback((id: string, updates: Partial<Omit<Category, 'id' | 'createdAt'>>) => {
-    setCategories(prev => prev.map(category => 
-      category.id === id 
-        ? { ...category, ...updates }
-        : category
-    ));
-  }, []);
-
-  const deleteCategory = useCallback((id: string) => {
-    setCategories(prev => prev.filter(category => category.id !== id));
-    // 해당 카테고리를 사용하는 할일들의 categoryId 제거
-    setTodos(prev => prev.map(todo => 
-      todo.categoryId === id 
-        ? { ...todo, categoryId: undefined, updatedAt: new Date() }
-        : todo
-    ));
-  }, []);
-
-  const getCategoryById = useCallback((id: string) => {
-    return categories.find(category => category.id === id);
-  }, [categories]);
-
   return {
     todos: filteredAndSortedTodos,
-    allTodos: todos,
-    categories,
+    allTodos: todos || [],
+    categories: categories || [],
     filters,
     setFilters,
     loading,
@@ -157,5 +172,7 @@ export const useTodos = () => {
     updateCategory,
     deleteCategory,
     getCategoryById,
+    refetchTodos,
+    refetchCategories,
   };
 };

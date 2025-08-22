@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Todo, Category } from '../../../../shared/types';
+import type { Todo, Category } from '../../types';
 
 interface EditTodoFormProps {
   todo: Todo;

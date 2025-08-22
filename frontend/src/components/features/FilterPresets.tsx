@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { TodoFilters } from '../../../../shared/types';
+import type { TodoFilters } from '../../types';
 
 interface FilterPreset {
   id: string;

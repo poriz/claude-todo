@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import type { Todo, Category } from '../../../../shared/types';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
+import type { Todo, Category } from '../../types';
 
 interface AddTodoFormProps {
   onAddTodo: (todo: Omit<Todo, 'id' | 'createdAt' | 'updatedAt'>) => void;
