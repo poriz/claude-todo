@@ -100,7 +100,7 @@ claude-todo/
 - `$NOTION_TASKS_DB_ID` - Tasks 데이터베이스  
 - `$NOTION_DAILY_LOGS_DB_ID` - Daily Logs 데이터베이스
 
-## 📈 프로젝트 현황 (2025-08-10 기준)
+## 📈 프로젝트 현황 (2025-08-23 기준)
 
 ### 완료된 단계
 - ✅ **Phase 1**: 기반 구축 (100% 완료)
@@ -109,26 +109,66 @@ claude-todo/
   - 인증 시스템 구현
   - 기본 CRUD 기능
 
-### 현재 진행 단계
-- 🔄 **Phase 2**: 핵심 기능 (0% 진행)
+- ✅ **Phase 2**: 핵심 기능 (100% 완료)
   - 할일 관리 고도화
-  - 카테고리/태그 시스템
+  - 카테고리/태그 시스템 (8색상 지원)
   - 우선순위 및 마감일 관리
-  - 검색 및 필터링
+  - 고급 검색 및 필터링
+  - 백엔드 API 완전 구축
+  - Docker 컨테이너화 완료
+
+- ✅ **Phase 5**: 테스트 & 배포 (100% 완료)
+  - E2E 테스트 (Playwright)
+  - Docker 멀티 스테이지 빌드
+  - 프로덕션 배포 환경 구축
+  - 83% 테스트 성공률
+
+### 현재 진행 단계
+- 🔄 **Phase 3**: 사용자 경험 향상 (진행 예정)
+  - 애니메이션 & 트랜지션
+  - 드래그 앤 드롭 기능
+  - 다크/라이트 모드
+  - 키보드 단축키 & 접근성
+
+### 대기 단계
+- ⏳ **Phase 4**: 고급 기능 (대기중)
+  - CI/CD 파이프라인
+  - 성능 모니터링
+  - 실시간 협업 기능
 
 ## 🔧 기술 스택 현황
 
-### ✅ 완료
-- React 18 + TypeScript
-- Vite 개발 환경
+### ✅ 완료 (프로덕션 준비)
+**Frontend:**
+- React 18 + TypeScript + Vite
 - Tailwind CSS
 - ESLint + Prettier
+- 완전한 타입 안전성
 
-### 📝 예정
-- 백엔드 API 구현
-- 데이터베이스 연동
-- 테스트 프레임워크
-- 배포 파이프라인
+**Backend:**
+- Express + TypeScript
+- Prisma ORM + SQLite
+- RESTful API (8개 엔드포인트)
+- CORS 설정 완료
+
+**DevOps & Testing:**
+- Docker 멀티 스테이지 빌드
+- docker-compose 오케스트레이션
+- Nginx 리버스 프록시
+- Playwright E2E 테스트
+- 헬스체크 & 모니터링
+
+### 📝 Phase 3 예정 추가
+**UX Enhancement Libraries:**
+- Framer Motion (애니메이션)
+- React DnD (드래그앤드롭)
+- React Hotkeys Hook (키보드 단축키)
+- Tailwind Dark Mode (다크모드)
+
+### 🚀 현재 접속 가능
+- **프론트엔드**: http://localhost:3000
+- **백엔드 API**: http://localhost:3001/api
+- **헬스체크**: http://localhost:3001/health
 
 ## 🔄 로컬 개발 워크플로우
 
@@ -139,9 +179,10 @@ claude-todo/
 
 ### 🔄 작업 프로세스
 1. **Claude Code**로 개발 작업 수행
-2. **Git**으로 코드 변경사항 커밋/푸시  
-3. **Notion**에 작업 진행 상황 수동 업데이트
-4. **Daily Logs**에 작업 내용 기록
+2. **Docker 개발 환경**에서 테스트 및 검증
+3. **Git**으로 코드 변경사항 커밋/푸시  
+4. **Notion**에 작업 진행 상황 수동 업데이트
+5. **Daily Logs**에 작업 내용 기록
 
 ### 📝 연동 관리 가이드
 - 코드 변경 후 반드시 **Notion Tasks** 상태 업데이트
@@ -159,6 +200,133 @@ refactor: 리팩토링
 test: 테스트 추가/수정
 ```
 
+## 🐳 Docker 개발 환경 워크플로우
+
+### 📋 Docker 환경 사용 이유
+- **일관된 개발 환경**: 모든 개발자가 동일한 Node.js, 의존성 버전 사용
+- **Hot Reload 지원**: 소스 코드 변경 시 실시간 반영
+- **서비스 간 네트워킹**: 프론트엔드-백엔드 연동 자동화
+- **테스트 환경 격리**: Playwright MCP 테스트 시 안정적인 환경 제공
+
+### 🚀 Docker 개발 환경 시작
+```bash
+# 개발 환경 컨테이너 빌드 및 실행
+docker-compose -f docker-compose.dev.yml up --build
+
+# 백그라운드 실행
+docker-compose -f docker-compose.dev.yml up -d --build
+
+# 특정 서비스만 실행
+docker-compose -f docker-compose.dev.yml up frontend-dev
+```
+
+### 📊 서비스 구성
+- **frontend-dev**: http://localhost:5173 (Vite 개발 서버)
+- **backend-dev**: http://localhost:3001 (Express API 서버)
+- **Hot Reload**: `./frontend/src` → `/app/src` 볼륨 매핑
+
+### 🔧 개발 중 Docker 관리
+```bash
+# 컨테이너 상태 확인
+docker-compose -f docker-compose.dev.yml ps
+
+# 로그 확인
+docker-compose -f docker-compose.dev.yml logs -f frontend-dev
+docker-compose -f docker-compose.dev.yml logs -f backend-dev
+
+# 컨테이너 재시작
+docker-compose -f docker-compose.dev.yml restart frontend-dev
+
+# 환경 종료
+docker-compose -f docker-compose.dev.yml down
+
+# 컨테이너 및 볼륨 완전 삭제
+docker-compose -f docker-compose.dev.yml down -v
+```
+
+### 🧪 Playwright MCP + Docker 테스트 워크플로우
+```bash
+# 1. Docker 개발 환경 실행
+docker-compose -f docker-compose.dev.yml up -d --build
+
+# 2. 컨테이너 헬스체크 대기
+docker-compose -f docker-compose.dev.yml logs -f backend-dev | grep "Server is running"
+
+# 3. Playwright MCP 브라우저 테스트
+mcp__playwright__browser_navigate("http://localhost:5173")
+mcp__playwright__browser_snapshot()
+
+# 4. 테스트 완료 후 정리
+docker-compose -f docker-compose.dev.yml down
+```
+
+### 💡 Docker 환경 장점
+- **모듈 의존성 충돌 방지**: 로컬 node_modules와 격리
+- **Vite 캐시 일관성**: 컨테이너 내 .vite 폴더 관리
+- **포트 충돌 해결**: 컨테이너 네트워킹으로 안정적 연결
+- **프로덕션 환경 근사**: docker-compose.yml과 유사한 구조
+
+### ⚠️ 주의사항
+- 볼륨 매핑된 파일만 실시간 반영됨 (package.json 변경 시 재빌드 필요)
+- 컨테이너 재시작 시 node_modules 재설치 과정 시간 소요
+- 로컬 포트 5173, 3001 사용 중인지 확인 필요
+
+---
+
+## 🎯 Phase 3: 사용자 경험 향상 - 상세 계획
+
+### 📋 개발 워크플로우 (Context7 MCP + TDD + Playwright MCP 방식)
+**Context7 MCP 사전 조사 → 기능 구현 → Playwright MCP 자동 테스트 → 검증 → 다음 단계**
+
+### 🏗️ 7단계 개발 계획
+
+#### 🥇 1단계: 애니메이션 인프라 구축 (1시간)
+- Framer Motion 설치 & 기본 설정
+- 공통 애니메이션 컴포넌트 생성
+- 애니메이션 미리셋 정의
+- **자동 테스트**: Playwright MCP로 애니메이션 렌더링 및 인터랙션 검증
+
+#### 🎬 2단계: 기본 Todo 애니메이션 구현 (2-3시간)  
+- Todo 추가/삭제 애니메이션 (Slide-in, Fade-out)
+- 체크박스 상태 변경 애니메이션
+- 로딩 스피너 고도화
+- **자동 테스트**: Playwright MCP로 Todo 애니메이션 및 상태 변경 검증
+
+#### 🌙 3단계: 다크모드 인프라 구축 (1-2시간)
+- 테마 Context 구현 + localStorage 저장
+- Tailwind 다크모드 설정
+- 헤더 토글 버튼 추가
+- **자동 테스트**: Playwright MCP로 테마 전환 기능 및 localStorage 저장 검증
+
+#### 🖱️ 4단계: 드래그앤드롭 기본 기능 (2-3시간)
+- React DnD 설치 & 기본 설정
+- Todo 리스트 내 순서 변경
+- 시각적 피드백 (드래그 상태, 드롭 존)
+- **자동 테스트**: Playwright MCP로 드래그앤드롭 인터랙션 검증
+
+#### 🔌 5단계: 드래그앤드롭 백엔드 연동 (1-2시간)
+- 백엔드 API 엔드포인트 추가 (순서 정보 저장/조회)
+- 에러 핸들링 구현
+- **자동 테스트**: Playwright MCP로 백엔드 연동 및 데이터 영속성 검증
+
+#### ⌨️ 6단계: 키보드 단축키 & 접근성 (1시간)
+- 전역 단축키 구현 (Ctrl+N, Ctrl+F, Esc)
+- ARIA 라벨 완성, 키보드 탐색 최적화
+- **자동 테스트**: Playwright MCP로 키보드 단축키 및 접근성 검증
+
+#### 🧪 7단계: 최종 테스트 및 정리 (1시간)
+- E2E 테스트 업데이트 및 실행
+- 성능 최적화 및 코드 정리
+- **통합 테스트**: Playwright MCP로 E2E 시나리오 검증
+
+### ⏱️ **총 예상 시간: 9-13시간**
+
+### 🎯 **완료 후 기대 효과**
+- 시각적 매력도 50% 향상
+- 사용자 참여도 증가  
+- 프로덕션급 품질 완성
+- 포트폴리오 완성도 극대화
+
 ---
 
 ## 💡 중요 지침
@@ -168,6 +336,282 @@ test: 테스트 추가/수정
 3. **작업 완료 후** 반드시 Notion에 결과를 기록하세요
 4. **매일 작업 마감 시** Daily Logs에 일일 요약을 작성하세요
 5. **Phase 전환 시** Progress Dashboard를 업데이트하세요
+6. **Phase 3 개발 시**: Context7 MCP 사전 조사 → 기능 구현 → Playwright MCP 자동 테스트 → 검증 반복
+
+## 🔍 Context7 MCP 사전 조사 워크플로우
+
+### 📋 **필수 사전 조사 프로세스**
+
+#### 🥇 **0단계: 라이브러리 사전 조사 (모든 구현 전 필수)**
+모든 라이브러리 구현 전에 **Context7 MCP**를 통해 최신 정보를 확인하고 올바른 사용법을 학습한 후 개발을 진행합니다.
+
+##### **사전 조사 필수 항목**
+1. **라이브러리 최신 버전 확인**
+2. **API 변경사항 및 Breaking Changes**
+3. **TypeScript 타입 정의 변경사항**
+4. **권장 사용 패턴 및 Best Practices**
+5. **호환성 이슈 및 해결방안**
+
+#### 🔄 **Context7 MCP 조사 절차 (버전 명시 필수)**
+
+##### **1. 기본 라이브러리 정보 수집**
+```typescript
+// Context7 MCP를 통해 다음 정보 수집 (버전 명시 필수):
+// - 라이브러리명: framer-motion
+// - 현재 프로젝트에서 사용 중인 정확한 버전 (예: 11.5.4)
+// - 최신 안정 버전 및 주요 변경사항
+// - 특정 버전의 TypeScript 지원 현황
+// - 해당 버전의 Breaking Changes 목록
+```
+
+##### **2. 버전별 구현 패턴 및 예제 조사**
+```typescript
+// Context7 MCP로 확인할 내용 (버전 기반):
+// - 특정 버전(예: framer-motion@11.x)에서 권장하는 컴포넌트 작성 방식
+// - 해당 버전의 TypeScript 인터페이스 및 타입 정의
+// - 버전별 성능 최적화 방안
+// - 특정 버전에서 발생하는 일반적인 에러 케이스 및 해결책
+```
+
+##### **3. 버전 호환성 및 의존성 확인**
+```typescript
+// Context7 MCP로 검증할 사항 (버전 기반):
+// - 특정 버전이 React 18과의 호환성 여부
+// - 해당 버전이 Vite 5.x와의 호환성 여부  
+// - 특정 버전이 TypeScript 5.x와의 호환성 여부
+// - 해당 버전과 다른 라이브러리와의 충돌 가능성
+```
+
+#### ✅ **사전 조사 체크리스트**
+
+##### **라이브러리별 확인 사항**
+- [ ] **Framer Motion**: 최신 API, 타입 정의, 성능 최적화
+- [ ] **React DnD**: 드래그앤드롭 구현 패턴, 터치 지원
+- [ ] **React Hotkeys Hook**: 키보드 이벤트 처리, 접근성
+- [ ] **Tailwind CSS Dark Mode**: 다크모드 구현 방식
+
+##### **공통 확인 사항**
+- [ ] **Breaking Changes**: 주요 API 변경사항
+- [ ] **Migration Guide**: 기존 코드 마이그레이션 방법
+- [ ] **Performance Impact**: 성능에 미치는 영향
+- [ ] **Bundle Size**: 번들 크기 영향도
+
+#### 🚨 **사전 조사 없이 진행 금지**
+
+##### **금지 사항**
+❌ **절대 하지 말 것**:
+- 라이브러리 문서 확인 없이 바로 구현
+- 인터넷 예제 코드 그대로 복사
+- 타입 에러 발생 시 임시방편으로 any 사용
+- 버전 충돌 발생 시 강제 업데이트
+
+##### **문제 발생 시 대응**
+🔧 **올바른 접근**:
+1. Context7 MCP로 재조사 (구체적 버전 명시)
+2. 공식 문서에서 해당 버전의 올바른 사용법 확인
+3. 타입 안전성을 보장하는 방식으로 구현
+4. 필요시 라이브러리 버전 조정 및 requirements.txt 업데이트
+5. requirements.txt에 변경된 버전 및 이유 기록
+
+#### 📊 **사전 조사 보고서 형식 (버전 명시 필수)**
+
+```
+## 🔍 [라이브러리명@버전] Context7 MCP 사전 조사 결과
+
+### 📦 **라이브러리 정보**
+- **타겟 버전**: X.X.X (구체적 버전 명시)
+- **최신 안정 버전**: Y.Y.Y  
+- **버전간 주요 변경사항**: [X.X.X에서 Y.Y.Y로의 Breaking Changes]
+- **호환성 매트릭스**: React 18 + Vite 5.x + TypeScript 5.x
+
+### 💡 **해당 버전 권장 구현 방식**
+- **TypeScript 타입**: [X.X.X 버전의 올바른 타입 정의]
+- **컴포넌트 패턴**: [X.X.X 버전의 권장 패턴]
+- **성능 최적화**: [X.X.X 버전의 최적화 방안]
+
+### ⚠️ **주의사항**
+- **X.X.X 버전 특정 이슈**: [발견된 이슈들]
+- **해결 방안**: [구체적 해결책]
+- **requirements.txt 반영 필요**: [변경사항 있을 시]
+
+### ✅ **구현 준비 완료**
+- [ ] X.X.X 버전 타입 정의 확인
+- [ ] X.X.X 버전 예제 코드 검증  
+- [ ] 호환성 테스트 완료
+- [ ] requirements.txt 업데이트 필요 여부 확인
+```
+
+### 💡 **Context7 MCP 활용 팁 (버전 명시)**
+1. **구체적 질문**: "framer-motion@11.5.4에서 MotionProps 사용법"
+2. **코드 예제 요청**: "React 18 + TypeScript 5.x + framer-motion@11.x 컴포넌트 예제"
+3. **문제 해결**: "framer-motion@11.5.4 HTMLMotionProps 타입 에러 해결"
+4. **성능 최적화**: "framer-motion@11.x 애니메이션 성능 최적화 방법"
+5. **버전 비교**: "framer-motion@10.x vs @11.x 주요 차이점 및 마이그레이션"
+
+## 📋 requirements.txt 관리 지침
+
+### 🎯 **requirements.txt 목적**
+- 라이브러리 버전 변경 이력 추적
+- 버전 변경 이유 및 Breaking Changes 기록
+- 팀원들과의 버전 동기화
+- 문제 발생 시 롤백 참고 자료
+
+### 📝 **requirements.txt 형식**
+```
+# Claude Todo Project - Library Version Requirements
+# Last Updated: 2025-08-23
+
+## Frontend Dependencies
+framer-motion@11.5.4
+# Reason: Animation infrastructure for Phase 3
+# Changed from: N/A (new installation)
+# Breaking Changes: None
+# Compatible: React 18 + TypeScript 5.x + Vite 5.x
+
+react-dnd@16.0.1
+# Reason: Drag and drop functionality for Phase 3
+# Changed from: N/A (new installation)  
+# Breaking Changes: None
+# Compatible: React 18 + TypeScript 5.x
+
+react-hotkeys-hook@4.4.4
+# Reason: Keyboard shortcuts for Phase 3
+# Changed from: N/A (new installation)
+# Breaking Changes: None
+# Compatible: React 18 + TypeScript 5.x
+
+## Backend Dependencies
+# (No changes required for Phase 3)
+
+## Update History
+# 2025-08-23: Initial Phase 3 library versions defined
+```
+
+### 🔄 **requirements.txt 업데이트 절차**
+1. **라이브러리 버전 변경 전**: Context7 MCP로 사전 조사
+2. **변경 후**: requirements.txt에 변경사항 기록
+3. **필수 기록 항목**:
+   - 변경된 버전 (From → To)
+   - 변경 이유
+   - Breaking Changes 여부
+   - 호환성 확인 결과
+4. **Git 커밋 시**: requirements.txt도 함께 커밋
+
+## 🧪 Playwright MCP 테스트 워크플로우
+
+### 📋 **자동 테스트 표준 프로세스**
+
+#### 🔄 **각 단계별 테스트 흐름**
+1. **기능 구현 완료** 후 즉시 테스트 실행
+2. **mcp__playwright__browser_navigate** → 개발 서버 접속
+3. **mcp__playwright__browser_snapshot** → 페이지 상태 캡처
+4. **상호작용 테스트** → 클릭, 호버, 키보드 입력 등
+5. **결과 검증** → 예상 동작과 실제 결과 비교
+6. **다음 단계 진행** 또는 **버그 수정**
+
+#### 🎯 **테스트 명령어 표준화**
+
+##### **기본 테스트 시작**
+```typescript
+// 1. 브라우저에서 개발 서버 접속
+mcp__playwright__browser_navigate("http://localhost:5173")
+
+// 2. 페이지 로드 완료 대기
+mcp__playwright__browser_wait_for(time: 2)
+
+// 3. 현재 페이지 상태 캡처 
+mcp__playwright__browser_snapshot()
+```
+
+##### **애니메이션 컴포넌트 테스트**
+```typescript
+// 4. 특정 요소 존재 확인
+mcp__playwright__browser_click(
+  element: "테스트 버튼",
+  ref: "button_reference"
+)
+
+// 5. 애니메이션 완료 대기
+mcp__playwright__browser_wait_for(time: 1)
+
+// 6. 결과 상태 스냅샷
+mcp__playwright__browser_snapshot()
+```
+
+##### **인터랙션 테스트**
+```typescript
+// 7. 사용자 입력 시뮬레이션
+mcp__playwright__browser_type(
+  element: "입력 필드",
+  ref: "input_reference", 
+  text: "테스트 데이터"
+)
+
+// 8. 키보드 이벤트 테스트
+mcp__playwright__browser_press_key(key: "Enter")
+```
+
+#### ✅ **성공 기준 정의**
+
+##### **필수 통과 조건**
+1. **렌더링 테스트** - 모든 컴포넌트가 정상 표시됨
+2. **인터랙션 테스트** - 버튼 클릭, 호버 등이 정상 반응
+3. **상태 변경 테스트** - 데이터 추가/수정/삭제가 UI에 반영
+4. **애니메이션 테스트** - 애니메이션이 끊김 없이 실행
+5. **에러 없음** - 콘솔에 JavaScript 에러가 없음
+
+##### **품질 기준**
+- **응답 시간**: 각 인터랙션이 2초 이내 완료
+- **시각적 일관성**: 애니메이션이 자연스럽게 동작
+- **접근성**: 키보드 탐색이 순서대로 가능
+
+#### 🚨 **실패 시 대응 방안**
+
+##### **테스트 실패 분류**
+1. **렌더링 실패** → 컴포넌트 코드 재검토
+2. **인터랙션 실패** → 이벤트 핸들러 확인  
+3. **애니메이션 실패** → Framer Motion 설정 점검
+4. **데이터 실패** → API 연동 상태 확인
+
+##### **디버깅 절차**
+```typescript
+// 1. 콘솔 메시지 확인
+mcp__playwright__browser_console_messages()
+
+// 2. 네트워크 요청 확인  
+mcp__playwright__browser_network_requests()
+
+// 3. 스크린샷으로 현재 상태 기록
+mcp__playwright__browser_take_screenshot(
+  filename: "debug_screenshot.png"
+)
+```
+
+#### 📊 **테스트 보고서 형식**
+
+```
+## 🧪 [단계명] 테스트 결과
+
+### ✅ 통과한 테스트
+- [ ] 렌더링 테스트 (5/5)
+- [ ] 인터랙션 테스트 (4/4) 
+- [ ] 상태 변경 테스트 (3/3)
+
+### ❌ 실패한 테스트  
+- [ ] 애니메이션 지연 (1초 초과)
+
+### 🔧 수정 사항
+- Framer Motion duration 0.3초로 단축
+
+### 📈 다음 단계
+- 1-3단계 애니메이션 미리셋 정의 진행
+```
+
+### 💡 **자동화 활용 팁**
+1. **병렬 테스트**: 여러 컴포넌트 동시 테스트 가능
+2. **스냅샷 비교**: 시각적 회귀 테스트 자동화
+3. **성능 측정**: 로딩 시간 및 렌더링 속도 모니터링
+4. **크로스 브라우저**: 필요시 Firefox, Safari 추가 테스트
 
 ## 🛡️ Notion API 에러 예방 가이드
 
@@ -314,3 +758,4 @@ git filter-branch --force --index-filter \
 ---
 *마지막 업데이트: 2025-08-10 (Notion API 에러 예방 가이드 추가)*
 *Notion 워크스페이스: claude code*
+- to memorize

@@ -1,0 +1,28 @@
+# Claude Todo Project - Library Version Requirements
+# Last Updated: 2025-08-23
+
+## Frontend Dependencies
+framer-motion@12.23.12
+# Reason: Animation infrastructure for Phase 3
+# Changed from: N/A (already installed)
+# Breaking Changes: None (11.x → 12.x seamless upgrade)
+# Compatible: React 19 (partial) + TypeScript 5.8 + Vite 7.0
+# Note: React 19 has partial support, React 18 recommended for production
+
+react-dnd@16.0.1
+# Reason: Drag and drop functionality for Phase 3
+# Changed from: N/A (new installation)  
+# Breaking Changes: None
+# Compatible: React 18 + TypeScript 5.x
+
+react-hotkeys-hook@4.4.4
+# Reason: Keyboard shortcuts for Phase 3
+# Changed from: N/A (new installation)
+# Breaking Changes: None
+# Compatible: React 18 + TypeScript 5.x
+
+## Backend Dependencies
+# (No changes required for Phase 3)
+
+## Update History
+# 2025-08-23: Initial Phase 3 library versions defined
