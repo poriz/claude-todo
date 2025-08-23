@@ -1,5 +1,5 @@
 # 백엔드 Dockerfile
-FROM node:18-alpine
+FROM node:20-alpine
 
 # 필요한 의존성 설치 (OpenSSL, curl 포함)
 RUN apk add --no-cache openssl openssl-dev curl
