@@ -95,3 +95,16 @@ Desktop.ini
 # Temporary files
 *.tmp
 *.temp
+
+# Test artifacts and screenshots
+.playwright-mcp/
+*.png
+*.jpg
+*.jpeg
+!docs/**/*.png
+!docs/**/*.jpg
+!docs/**/*.jpeg
+
+# Docker volumes and temporary data
+.docker-volumes/
+data/
